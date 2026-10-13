@@ -1,0 +1,19 @@
+[Unit]
+Description=OpenPak PlayFab API (Core Keeper)
+After=openpak-nx-baas.service
+
+[Container]
+ContainerName=openpak-playfab
+# Build this image from servers/playfab/Dockerfile before starting the unit.
+Image=localhost/openpak-playfab:local
+Network=openpak.network
+Volume=openpak-playfab:/app/state:U
+EnvironmentFile=%h/openpak/deploy/.env
+Environment=PLAYFAB_HTTP_ADDR=:22650 PLAYFAB_HEALTH_ADDR=:22651 PLAYFAB_STATE_DIR=/app/state
+Environment=NX_INTERNAL_URL=http://openpak-nx-baas:20070
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
