@@ -1,0 +1,12 @@
+/state/
+/playfabd
+*.log
+*.pcap
+*.pcapng
+*.test
+*.out
+.env
+.env.*
+*.pem
+*.key
+*.tmp
