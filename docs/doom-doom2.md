@@ -85,7 +85,7 @@ behind one public IP (one household, CGNAT) must stay distinct participants.
 `playfabd` must not grow its own NAT implementation: it becomes a backend of
 [`openpak/connectivity`](../../../../../platforms/core/infra/connectivity/README.md) (internal API
 `127.0.0.1:20150`, bearer-token authenticated), following the cross-family
-plan in [`docs/shared-connectivity-plan.md`](../../../docs/shared-connectivity-plan.md).
+plan in internal research notes.
 
 - Namespace `playfab`, title `doom-doom2`: one participant lease per player
   per room, keyed by PlayFabID + connection generation — never by IP. Two

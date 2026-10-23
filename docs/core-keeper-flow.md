@@ -203,7 +203,7 @@ connection stage without fixing multiplayer.
 
 The Party adapter must use [`openpak/connectivity`](../../../../../platforms/core/infra/connectivity/README.md)
 for participant leases and compatible relay resources, following the
-[shared connectivity plan](../../../docs/shared-connectivity-plan.md). That
+shared connectivity plan (internal research notes). That
 service is already deployed for NPLN, including Core Keeper's running NPLN
 container. Its environment points to `http://openpak-connectivity:20150` and a
 private token file. Core Keeper reuses the Stardew-family NPLN implementation,

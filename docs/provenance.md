@@ -44,7 +44,7 @@ definitions. No reference backend implementation was used.
   observed in the first post-login Switch window, so they are not being treated
   as the immediate failing dependency.
 - Port block 22650–22659 is the next backend block after Klei, recorded in
-  [the port plan](../../../docs/ports.md).
+  [the port plan](https://docs.openpak.org/contributors/ports/).
 
 OpenPak's player mapping, token format, persistence and issuer are local
 implementation decisions. They do not assert compatibility with Microsoft's
