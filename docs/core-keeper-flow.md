@@ -201,7 +201,7 @@ connection stage without fixing multiplayer.
 
 ## Shared connectivity dependency
 
-The Party adapter must use [`servers/connectivity`](../../connectivity/README.md)
+The Party adapter must use [`openpak/connectivity`](../../../../../platforms/core/infra/connectivity/README.md)
 for participant leases and compatible relay resources, following the
 [shared connectivity plan](../../../docs/shared-connectivity-plan.md). That
 service is already deployed for NPLN, including Core Keeper's running NPLN

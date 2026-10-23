@@ -4,7 +4,7 @@ package main
 // DOOM II joins once its PlayFab TitleId is captured from the Switch client
 // (docs/doom-doom2.md) and configured via the environment. One process serves
 // every title on the same listener, dispatching on the console's Host like
-// servers/klei — no new port block.
+// platforms/switch/games/klei — no new port block.
 //
 // Credentials, mappings and log lines stay scoped per title: the store keys
 // players by title:account and the token verifier pins the title, so a Core
