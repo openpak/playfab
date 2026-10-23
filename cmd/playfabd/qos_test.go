@@ -2,10 +2,16 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"openpak/playfab/internal/routing"
 )
 
 func testBeacon(t *testing.T) *partyQos {
@@ -100,4 +106,90 @@ func TestPartyQosRequiresUsableAddress(t *testing.T) {
 			t.Fatalf("accepted unusable beacon address %q", host)
 		}
 	}
+}
+
+// routingCore serves a fixture routing table (public relay + beacon in
+// sa-east, test beacon in Japan) and marks BAAS user "aaaa" as a tester.
+func routingCore(t *testing.T, tester bool, nodes string) *routing.Client {
+	t.Helper()
+	core := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get(routing.KeyHeader) != "routing-key" {
+			w.WriteHeader(401)
+			return
+		}
+		switch r.URL.Path {
+		case routing.PathTable:
+			table := routing.NewTable(nil)
+			if err := json.Unmarshal([]byte(nodes), &table.Nodes); err != nil {
+				t.Error(err)
+			}
+			_ = json.NewEncoder(w).Encode(table)
+		case routing.PathAccount:
+			if r.URL.Query().Get("namespace") != "switch" || r.URL.Query().Get("subject") != "aaaa" {
+				w.WriteHeader(404)
+				return
+			}
+			_ = json.NewEncoder(w).Encode(routing.Account{Country: "BR", Tester: tester})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	t.Cleanup(core.Close)
+	c := &routing.Client{BaseURL: core.URL, Key: "routing-key"}
+	if err := c.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
+const fixtureNodes = `[
+ {"id":"br-gru-1","region":"sa-east","country":"BR","services":{"playfab_party":"198.51.100.10:3074","playfab_qos":"198.51.100.10:3075"}},
+ {"id":"br-gru-2","region":"sa-east","country":"BR","services":{"playfab_party":"198.51.100.11:3074"}},
+ {"id":"us-bad-1","region":"us-east","country":"US","services":{"playfab_qos":"198.51.100.12:9999"}},
+ {"id":"jp-test-1","region":"ap-northeast","country":"JP","test":true,"services":{"playfab_party":"203.0.113.20:3074","playfab_qos":"203.0.113.20"}}]`
+
+func qosList(t *testing.T, s *server, headers map[string]string) []struct{ Region, ServerUrl string } {
+	t.Helper()
+	w := call(s, "/MultiplayerServer/ListPartyQosServers", "{}", headers)
+	var response struct {
+		Data struct {
+			PageSize   int
+			QosServers []struct{ Region, ServerUrl string }
+		}
+	}
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &response) != nil || response.Data.PageSize != len(response.Data.QosServers) {
+		t.Fatalf("discovery %d: %s", w.Code, w.Body)
+	}
+	return response.Data.QosServers
+}
+
+func TestPartyQosRegions(t *testing.T) {
+	s, _, _ := testService(t)
+	s.qos = testBeacon(t)
+	entity := map[string]string{"X-EntityToken": loggedIn(t, s).EntityToken.EntityToken}
+	home := []struct{ Region, ServerUrl string }{{"UkSouth", "127.0.0.1"}}
+	brazil := append(home, struct{ Region, ServerUrl string }{"BrazilSouth", "198.51.100.10"})
+	japan := append(brazil[:2:2], struct{ Region, ServerUrl string }{"JapanEast", "203.0.113.20"})
+	check := func(name string, got, want []struct{ Region, ServerUrl string }) {
+		t.Helper()
+		if fmt.Sprint(got) != fmt.Sprint(want) {
+			t.Fatalf("%s: got %v, want %v", name, got, want)
+		}
+	}
+
+	check("federation off", qosList(t, s, entity), home)
+	today := call(s, "/MultiplayerServer/ListPartyQosServers", "{}", entity).Body.String()
+	for name, c := range map[string]*routing.Client{"no routing URL": {}, "zero nodes": routingCore(t, true, `[]`)} {
+		s.routing = c
+		if got := call(s, "/MultiplayerServer/ListPartyQosServers", "{}", entity).Body.String(); got != today {
+			t.Fatalf("%s changed the reply:\n%s\nwant\n%s", name, got, today)
+		}
+	}
+
+	s.routing = routingCore(t, false, fixtureNodes)
+	check("public account", qosList(t, s, entity), brazil)
+	s.routing = routingCore(t, true, fixtureNodes)
+	check("tester", qosList(t, s, entity), japan)
+	check("no entity token is not a tester", qosList(t, s, nil), brazil)
+	check("invalid entity token is not a tester", qosList(t, s, map[string]string{"X-EntityToken": "opet1.x.y"}), brazil)
 }

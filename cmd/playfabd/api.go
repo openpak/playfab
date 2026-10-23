@@ -10,16 +10,19 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"openpak/playfab/internal/routing"
 )
 
 const maxBody = 32 << 10
 
 type server struct {
-	state  *store
-	ids    identityClient
-	now    func() time.Time
-	qos    *partyQos
-	titles map[string]titleConfig // lowercase host -> title; defaultTitles()
+	state   *store
+	ids     identityClient
+	now     func() time.Time
+	qos     *partyQos
+	routing *routing.Client        // nil or no URL: federation off, home only
+	titles  map[string]titleConfig // lowercase host -> title; defaultTitles()
 }
 
 type entityKey struct {
@@ -112,7 +115,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/Event/WriteTelemetryEvents":
 		s.observePartyTelemetry(rec, r)
 	case "/MultiplayerServer/ListPartyQosServers":
-		s.listPartyQosServers(rec, r)
+		s.listPartyQosServers(rec, r, cfg)
 	default:
 		unavailable(rec)
 	}
@@ -276,4 +279,22 @@ func (s *server) getEntityToken(w http.ResponseWriter, r *http.Request, cfg titl
 		return
 	}
 	success(w, result)
+}
+
+// routingAccount is the caller's routing country and test allow-list status,
+// from the entity token's linked Switch account. No token, an invalid one or
+// federation off is the zero Account: no country, not a tester.
+func (s *server) routingAccount(r *http.Request, cfg titleConfig) routing.Account {
+	if s.routing == nil || s.state == nil {
+		return routing.Account{}
+	}
+	tokens := r.Header.Values("X-EntityToken")
+	if len(tokens) != 1 {
+		return routing.Account{}
+	}
+	c, err := s.verify(tokens[0], entityAudience, cfg.Title, s.now().UTC())
+	if err != nil {
+		return routing.Account{}
+	}
+	return s.routing.Account(r.Context(), routing.AccountRef{Namespace: "switch", Subject: c.BaasUserID})
 }

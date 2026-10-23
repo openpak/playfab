@@ -10,9 +10,15 @@ import (
 	"net/http"
 	"sync/atomic"
 	"time"
+
+	"openpak/playfab/internal/party"
+	"openpak/playfab/internal/routing"
 )
 
-const partyQosRegion = "UkSouth"
+const partyQosRegion = party.HomeRegion
+
+// qosService is the node role of a regional Party QoS beacon.
+const qosService = "playfab_qos"
 const maxQosPacket = 512
 
 type partyQos struct {
@@ -37,7 +43,7 @@ func openPartyQos(addr, host string) (*partyQos, error) {
 	return &partyQos{conn: conn, host: ip.To4().String()}, nil
 }
 
-func (s *server) listPartyQosServers(w http.ResponseWriter, r *http.Request) {
+func (s *server) listPartyQosServers(w http.ResponseWriter, r *http.Request, cfg titleConfig) {
 	if s.qos == nil {
 		unavailable(w)
 		return
@@ -48,10 +54,33 @@ func (s *server) listPartyQosServers(w http.ResponseWriter, r *http.Request) {
 	if !decodeBody(w, r, &request) {
 		return
 	}
-	success(w, map[string]any{
-		"PageSize":   1,
-		"QosServers": []map[string]string{{"Region": partyQosRegion, "ServerUrl": s.qos.host}},
-	})
+	servers := []map[string]string{{"Region": partyQosRegion, "ServerUrl": s.qos.host}}
+	if t := s.routing.Table(); t != nil {
+		tester := s.routingAccount(r, cfg).Tester
+		for _, a := range t.Advertise(routing.StackPlayFab, qosService, tester) {
+			if host := beaconHost(a.Address); host != "" && len(a.Token) < 20 {
+				servers = append(servers, map[string]string{"Region": a.Token, "ServerUrl": host})
+			}
+		}
+	}
+	success(w, map[string]any{"PageSize": len(servers), "QosServers": servers})
+}
+
+// beaconHost is a node beacon address in the home beacon's shape: a bare
+// IPv4 address (the SDK always probes UDP 3075). "" when unusable.
+func beaconHost(address string) string {
+	host := address
+	if h, port, err := net.SplitHostPort(address); err == nil {
+		if port != "3075" {
+			return ""
+		}
+		host = h
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || ip.To4() == nil || ip.IsUnspecified() || ip.IsMulticast() {
+		return ""
+	}
+	return ip.To4().String()
 }
 
 type qosRate struct {

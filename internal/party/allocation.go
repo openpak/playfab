@@ -1,5 +1,6 @@
 // Package party describes the native Party allocation contract inspected for
-// Core Keeper. It does not implement an allocator or a relay.
+// Core Keeper and decides where a new network's relay runs (placement.go).
+// It does not implement an allocator endpoint or a relay.
 package party
 
 import (

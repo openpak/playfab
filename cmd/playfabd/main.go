@@ -14,6 +14,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"openpak/playfab/internal/routing"
 )
 
 func env(name, fallback string) string {
@@ -40,6 +42,16 @@ func main() {
 	}
 	defer state.close()
 	s := &server{state: state, ids: newIdentityClient(env("NX_INTERNAL_URL", "http://127.0.0.1:20070"), key), now: time.Now, titles: defaultTitles()}
+	if u := os.Getenv("OPENPAK_ROUTING_URL"); u != "" {
+		s.routing = &routing.Client{BaseURL: u, Key: os.Getenv("OPENPAK_ROUTING_KEY")}
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := s.routing.Refresh(ctx); err != nil {
+				log.Printf("[playfab] routing table not fetched yet (home only until it is): %v", err)
+			}
+		}()
+	}
 	if *qosAddr != "" || *qosHost != "" {
 		if *qosAddr == "" || *qosHost == "" {
 			log.Fatal("[playfab] both PLAYFAB_QOS_ADDR and PLAYFAB_QOS_HOST are required")

@@ -86,6 +86,22 @@ address, rather than a placeholder. The implementation follows Microsoft's
 oversized probes are ignored; responses are size-preserving and rate-limited.
 The internal health endpoint reports `qos_probes_served` when enabled.
 
+Region routing (federation) is optional. Set `OPENPAK_ROUTING_URL` (the
+account core, e.g. `http://openpak-account:8000`) and `OPENPAK_ROUTING_KEY`.
+`ListPartyQosServers` then lists home's `UkSouth` beacon first, followed by
+one entry per other region whose node announces a `playfab_qos` beacon (bare
+IPv4 or `ip:3075`), named by the region's Azure name. Test nodes are listed
+only for test-allow-listed accounts, identified through the request's entity
+token (linked Switch BAAS user); without a valid token the caller is not a
+tester. With the URL unset, the table unreachable or no nodes, the reply is
+exactly the home-only one. `internal/party.Place` holds the allocation rule
+for when an allocator exists: the creator's `PreferredRegions` in order, the
+first whose own region has a `playfab_party` relay node (or is home) wins,
+unknown names are skipped; then the account country; then home (`UkSouth`).
+Joiners reuse the network's placement (`party.Networks`). The QoS beacon is
+not yet runnable on a node by itself (the binary always serves the API and
+needs `NX_INTERNAL_KEY`), and there is no Party relay to run there yet.
+
 Console acceptance remains a separate check: restart Core Keeper, pass “Please
 wait”, observe the next API, host a world, then join from another account and
 machine. Authentication support alone does not establish multiplayer. Party
@@ -103,4 +119,5 @@ License: AGPL-3.0-only.
 The [Core Keeper protocol flow](docs/core-keeper-flow.md) records the decompiled
 login, allocation, descriptor integrity, presence and invitation gates. The
 `internal/party` package contains reviewed allocation models and connection
-validation; allocation and relay transport are still unimplemented.
+validation plus the region placement rule (`placement.go`); the allocation
+endpoint and relay transport are still unimplemented.
