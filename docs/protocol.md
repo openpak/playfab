@@ -57,3 +57,7 @@ unknown names are skipped; then the account country; then home (`UkSouth`).
 Joiners reuse the network's placement (`party.Networks`). The QoS beacon is
 not yet runnable on a node by itself (the binary always serves the API and
 needs `NX_INTERNAL_KEY`), and there is no Party relay to run there yet.
+
+Core Keeper selects `PlayFabPartyNetworking` even with cross-play off, so Party
+allocation and relay transport are required for multiplayer; the service does
+not advertise relay addresses.

@@ -179,7 +179,7 @@ Deserializer `0x376350` checks size, version, CRC, UUID/region and hostname
 reconstruction before rebuilding the opaque descriptor. Do not substitute
 Base64 JSON for this SDK-defined binary representation.
 
-## Established failure and implementation status
+## Established failure
 
 The corrected physical trace at 2026-10-12 23:07:36 UTC captured invitation
 handler entry with one selected friend and no current platform session.
@@ -189,13 +189,7 @@ were already set. These observations place the immediate failure before
 platform session publication and invitation submission; static analysis cannot
 by itself prove why that asynchronous login remained incomplete.
 
-Implemented/deployed: verified identity login, stable mappings, signed local
-credentials, entity exchange, real QoS API and public UDP beacon.
-
-Still required for complete multiplayer: establish client login completion,
-implement real Party allocation and relay transport, then verify platform
-presence publication, native invite submission, Harbor discovery and joining.
-No Party-compatible relay transport, certificate-backed allocation, or end-to-end success is
+Party allocation and relay transport are required for multiplayer. No Party-compatible relay transport, certificate-backed allocation, or end-to-end success is
 claimed. Returning fake allocation success would move the failure into a later
 connection stage without fixing multiplayer.
 

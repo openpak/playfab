@@ -1,6 +1,6 @@
 # DOOM + DOOM II (2024, KEX) on OpenPak
 
-> **Current Switch client (2026-10-13): Harbor**, at
+> **Current Switch client: Harbor**, at
 > `~/REPOS/Openpak/emulators/harbor`. Harbor is an independent
 > OpenPak project based on Eden. Citron, Ryujinx (desktop and Android), and
 > the former OpenPak Eden checkouts have been removed. References to those
@@ -16,9 +16,8 @@ SDK v1.7.2** and a Bethesda.net login required for online play and mod
 downloads. Single-player login bypass and the mod browser are out of scope
 until multiplayer works.
 
-Status: **not served yet.** `playfabd` carries the title as an optional
-second tenant (this document's capture fills in its TitleId); no console has
-exercised it.
+`playfabd` carries the title as an optional second tenant (this document's
+capture fills in its TitleId).
 
 ## What is known
 

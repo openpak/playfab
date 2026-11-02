@@ -49,7 +49,6 @@ GOWORK=off go build ./cmd/playfabd
 ## Docs
 
 - [Protocol](docs/protocol.md)
-- [Evidence](docs/evidence.md)
 - [Deploy](docs/deploy.md)
 - [Notes](docs/notes.md)
 - [Core Keeper protocol flow](docs/core-keeper-flow.md)
