@@ -50,11 +50,9 @@ GOWORK=off go build ./cmd/playfabd
 
 - [Protocol](docs/protocol.md)
 - [Deploy](docs/deploy.md)
-- [Notes](docs/notes.md)
 - [Core Keeper protocol flow](docs/core-keeper-flow.md)
 - [Deployment record](docs/deployment.md)
 - [DOOM + DOOM II plan](docs/doom-doom2.md)
-- [Protocol provenance](docs/provenance.md)
 
 ## Licence
 

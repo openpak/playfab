@@ -48,7 +48,7 @@ Keeper's `94845`) is not published anywhere. Do not guess it. Any one of:
    never the body).
 
 Record the TitleId, the exact host, and the first three operations after
-login in `docs/provenance.md` before enabling the title.
+login in `docs/protocol.md` before enabling the title.
 
 ## Wiring checklist (once captured)
 
