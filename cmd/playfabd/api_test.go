@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -71,7 +72,7 @@ func testServiceWithApp(t *testing.T, app string) (*server, *fakeIdentity, strin
 	}))
 	t.Cleanup(nx.Close)
 	dir := t.TempDir()
-	state, err := openStore(dir)
+	state, err := openStore(context.Background(), testDSN(t), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +128,7 @@ func entityData(t *testing.T, w *httptest.ResponseRecorder) entityResult {
 }
 
 func TestLoginPersistsIdentityAndSigningMaterial(t *testing.T) {
-	s, fake, dir := testService(t)
+	s, fake, _ := testService(t)
 	w := call(s, "/Client/LoginWithNintendoServiceAccount", loginBody(false), nil)
 	if w.Code != 400 || !strings.Contains(w.Body.String(), "AccountNotFound") {
 		t.Fatalf("CreateAccount=false created a player: %s", w.Body)
@@ -144,7 +145,7 @@ func TestLoginPersistsIdentityAndSigningMaterial(t *testing.T) {
 	}
 	_ = s.state.close()
 	var err error
-	s.state, err = openStore(dir)
+	s.state, err = openStore(context.Background(), testDSN(t, true), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +190,7 @@ func TestLoginRequiresVerifiedAccountAndApplication(t *testing.T) {
 			if w.Code != test.want {
 				t.Fatalf("status %d want %d: %s", w.Code, test.want, w.Body)
 			}
-			if len(s.state.Players) != 0 {
+			if s.state.count() != 0 {
 				t.Fatal("rejected login created a mapping")
 			}
 		})

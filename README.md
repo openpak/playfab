@@ -42,7 +42,8 @@ GOWORK=off go build ./cmd/playfabd
 | `PLAYFAB_HEALTH_ADDR` | `:22651` (`GET /health`) |
 | `PLAYFAB_DOOM_TITLE` | Unset (DOOM tenant off). Set to the captured PlayFab TitleId to serve `<title>.playfabapi.com` on the same listener |
 | `PLAYFAB_DOOM_APP` | `01008CB01E52E000` (override only if a regional build differs) |
-| `PLAYFAB_STATE_DIR` | `/app/state` (persistent, writable by service user) |
+| `PLAYFAB_DATABASE_URL` | Postgres URL (required; players and signing key) |
+| `PLAYFAB_STATE_DIR` | `/app/state` (legacy `playfab.json`, imported once into Postgres, file kept) |
 | `NX_INTERNAL_URL` | `http://127.0.0.1:20070` |
 | `NX_INTERNAL_KEY` | Required; same key as nx-baas. `OPENPAK_INTERNAL_KEY` is a fallback. |
 

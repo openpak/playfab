@@ -28,7 +28,8 @@ func env(name, fallback string) string {
 func main() {
 	addr := flag.String("addr", env("PLAYFAB_HTTP_ADDR", ":22650"), "PlayFab HTTP address")
 	health := flag.String("health-addr", env("PLAYFAB_HEALTH_ADDR", ":22651"), "internal health address")
-	dir := flag.String("state", env("PLAYFAB_STATE_DIR", "/app/state"), "persistent state directory")
+	dir := flag.String("state", env("PLAYFAB_STATE_DIR", "/app/state"), "legacy state directory: playfab.json found here is imported into Postgres once (file kept)")
+	dbURL := flag.String("database-url", os.Getenv("PLAYFAB_DATABASE_URL"), "Postgres URL (env PLAYFAB_DATABASE_URL)")
 	qosAddr := flag.String("qos-addr", os.Getenv("PLAYFAB_QOS_ADDR"), "optional Party UDP beacon address (port 3075)")
 	qosHost := flag.String("qos-host", os.Getenv("PLAYFAB_QOS_HOST"), "reachable IPv4 address of the Party beacon")
 	flag.Parse()
@@ -36,11 +37,14 @@ func main() {
 	if key == "" {
 		log.Fatal("[playfab] NX_INTERNAL_KEY is required")
 	}
-	state, err := openStore(*dir)
+	dbCtx, dbCancel := context.WithTimeout(context.Background(), 20*time.Second)
+	state, err := openStore(dbCtx, *dbURL, *dir)
+	dbCancel()
 	if err != nil {
 		log.Fatalf("[playfab] state: %v", err)
 	}
 	defer state.close()
+	log.Printf("[playfab] state in Postgres (%d title players)", state.count())
 	s := &server{state: state, ids: newIdentityClient(env("NX_INTERNAL_URL", "http://127.0.0.1:20070"), key), now: time.Now, titles: defaultTitles()}
 	if u := os.Getenv("OPENPAK_ROUTING_URL"); u != "" {
 		s.routing = &routing.Client{BaseURL: u, Key: os.Getenv("OPENPAK_ROUTING_KEY")}
