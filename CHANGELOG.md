@@ -1,5 +1,8 @@
 # Changelog — playfab
 
+## v0.3.0 — 2026-11-03
+- Per-request logging: one slog line per HTTP request (method, path, status, ms) on stderr via internal/httplog. Query strings, headers and bodies are never logged; /healthz and /metrics are skipped.
+
 ## v0.2.0 — 2026-11-03
 
 **Players and the signing key live in Postgres.** `playfab.json` is replaced by the tables `playfab_meta` (the token

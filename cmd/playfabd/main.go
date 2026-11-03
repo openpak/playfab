@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"openpak/playfab/internal/httplog"
 	"openpak/playfab/internal/routing"
 )
 
@@ -70,7 +71,7 @@ func main() {
 		}
 		defer s.qos.conn.Close()
 	}
-	api := &http.Server{Addr: *addr, Handler: s, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
+	api := &http.Server{Addr: *addr, Handler: httplog.Middleware(s), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		data := map[string]any{"status": "ok"}
