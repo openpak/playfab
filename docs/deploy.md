@@ -30,3 +30,11 @@ Build its local image before starting it, and set nx-baas's
 `NX_PLAYFAB_URL=http://openpak-playfab:22650`. The current signed network
 profile, TLS certificate fallback and Core Keeper NPLN deployment already
 cover the required HTTP host.
+
+## Rewards session events
+
+This host sends none. Rewards sessions (`game_sessions.core-keeper`, `game_sessions.doom-plus-doom-ii`) need
+server-observed room membership, and playfabd does not see any: Core Keeper rooms are PlayFab Party networks
+that live on the relay, and `/Lobby/*` and `/Match/*` are not implemented here (HTTP 503). Nothing is guessed.
+If lobbies are implemented later, carry the nx-baas `baas_user_id` with the entity, keep an `emit.Registry`
+(rewards-emit) with `Join`/`Leave`, and set `REWARDS_EVENTS_URL` / `REWARDS_EVENTS_KEY`.
