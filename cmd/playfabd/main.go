@@ -80,6 +80,7 @@ func main() {
 		}
 		writeJSON(w, 200, data)
 	})
+	mux.HandleFunc("DELETE /internal/accounts/{id}/data", eraseHandler("playfab", state.erase))
 	h := &http.Server{Addr: *health, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	apiListener, err := net.Listen("tcp", *addr)
 	if err != nil {

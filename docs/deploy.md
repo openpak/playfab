@@ -39,3 +39,9 @@ server-observed room membership, and playfabd does not see any: Core Keeper room
 that live on the relay, and `/Lobby/*` and `/Match/*` are not implemented here (HTTP 503). Nothing is guessed.
 If lobbies are implemented later, carry the nx-baas `baas_user_id` with the entity, keep an `emit.Registry`
 (rewards-emit) with `Join`/`Leave`, and set `REWARDS_EVENTS_URL` / `REWARDS_EVENTS_KEY`.
+
+## Account erasure
+
+`DELETE /internal/accounts/{account_id}/data` on the health listener (`http://openpak-playfab:22651`, not routed by Traefik), header `Authorization: Bearer <ACCOUNT_ERASE_KEY>`; key unset answers 503. Answers `{"service":"playfab","rows":N}`.
+
+`playfab_players.account_id` is the OpenPak account id, so no core lookup is needed. Erased: every `playfab_players` row of the account (all titles). Already issued credentials are HMAC-signed and checked against that row on use, so they stop working. Kept: nothing; the token signing key (`playfab_meta`) is the service's, and Party placements are keyed by network id, not account. Server-side PlayFab inventory, stats and friends are not stored by this service.

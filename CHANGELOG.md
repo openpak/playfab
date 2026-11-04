@@ -1,5 +1,9 @@
 # Changelog — playfab
 
+## v0.4.0 — 2026-11-04
+
+- Account erasure (prds#120): `DELETE /internal/accounts/{account_id}/data` on the health listener (22651; `Authorization: Bearer $ACCOUNT_ERASE_KEY`, unset = 503). `playfab_players.account_id` is the OpenPak account id (nx-baas hands it over at login), so the call deletes every title-player row of the account (PlayFab id and entity id, all titles); issued session credentials stop validating because their row is gone. Idempotent, one `account erased` log line. The signing key and Party placements (keyed by network id, in memory) hold no account data.
+
 ## v0.3.0 — 2026-11-03
 - Per-request logging: one slog line per HTTP request (method, path, status, ms) on stderr via internal/httplog. Query strings, headers and bodies are never logged; /healthz and /metrics are skipped.
 
